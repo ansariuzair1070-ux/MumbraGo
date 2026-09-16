@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MumbraGo — Fatafat rides and deliveries</title>
+<meta name="theme-color" content="#FF7A1A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #FFFBF6;
+    --panel: #FFFFFF;
+    --ink: #241B12;
+    --muted: #8A7B6C;
+    --line: #EFE4D6;
+    --orange: #FF7A1A;
+    --orange-deep: #E4600B;
+    --orange-tint: #FFF0E2;
+    --teal: #0F7A6C;
+    --teal-tint: #E7F5F1;
+    --red: #D64545;
+    --red-tint: #FDEAEA;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 1px 2px rgba(36,27,18,0.06), 0 8px 24px rgba(36,27,18,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans','Noto Sans Devanagari',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    justify-content:center;
+  }
+  body[data-lang="hi"], body[data-lang="mr"]{ font-family:'Noto Sans Devanagari','Noto Sans',sans-serif; }
+  h1,h2,h3,.brand{ font-family:'Baloo 2', 'Noto Sans Devanagari', sans-serif; }
+  .app{ width:100%; max-width:460px; min-height:100vh; background:var(--bg); display:flex; flex-direction:column; }
+
+  /* Header */
+  header.top{ padding:18px 18px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .brandmark{ display:flex; align-items:center; gap:10px; }
+  .logo{
+    width:38px; height:38px; border-radius:11px; background:linear-gradient(155deg,var(--orange),var(--orange-deep));
+    display:flex; align-items:center; justify-content:center; color:white; font-family:'Baloo 2'; font-weight:800; font-size:18px;
+    box-shadow:0 4px 10px rgba(228,96,11,0.35);
+  }
+  .brand{ font-size:20px; font-weight:700; letter-spacing:-0.01em; }
+  .tagline{ font-size:12.5px; color:var(--muted); margin-top:1px; }
+  .langtoggle{ display:flex; background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:3px; gap:2px; }
+  .langtoggle button{
+    border:none; background:transparent; font-size:12.5px; padding:6px 9px; border-radius:999px; color:var(--muted); font-weight:600; cursor:pointer;
+  }
+  .langtoggle button.active{ background:var(--ink); color:white; }
+
+  /* Role tabs */
+  .roles{ display:flex; gap:8px; padding:0 18px 14px; }
+  .roles button{
+    flex:1; padding:10px 8px; border-radius:12px; border:1.5px solid var(--line); background:var(--panel);
+    font-weight:700; font-size:14px; color:var(--muted); cursor:pointer;
+  }
+  .roles button.active{ border-color:var(--orange); color:var(--orange-deep); background:var(--orange-tint); }
+
+  main{ flex:1; padding:0 18px 90px; }
+  section.view{ display:none; }
+  section.view.active{ display:block; }
+
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px; margin-bottom:14px; box-shadow:var(--shadow); }
+  .card h3{ margin:0 0 10px; font-size:15px; }
+  .section-title{ font-size:13px; font-weight:700; color:var(--muted); text-transform:none; margin:18px 2px 8px; }
+
+  /* Trust strip */
+  .trust-strip{ display:flex; gap:8px; margin-bottom:14px; }
+  .trust-chip{
+    flex:1; background:var(--teal-tint); border:1px solid #CFE9E1; color:var(--teal); border-radius:12px;
+    padding:8px 8px; font-size:11.5px; font-weight:600; display:flex; flex-direction:column; align-items:center; gap:3px; text-align:center; line-height:1.25;
+  }
+  .trust-chip .ic{ font-size:16px; }
+
+  /* Booking modes */
+  .modes{ display:flex; gap:10px; margin-bottom:14px; }
+  .mode{
+    flex:1; border:1.5px solid var(--line); border-radius:var(--radius-sm); padding:12px 10px; background:var(--panel); cursor:pointer; text-align:left;
+  }
+  .mode.active{ border-color:var(--orange); background:var(--orange-tint); }
+  .mode .ic{ font-size:20px; }
+  .mode .t{ font-weight:700; font-size:13.5px; margin-top:6px; }
+  .mode .s{ font-size:11px; color:var(--muted); margin-top:2px; }
+
+  label.field-label{ display:block; font-size:12.5px; font-weight:600; color:var(--muted); margin:12px 0 5px; }
+  select, input[type=text], input[type=number]{
+    width:100%; padding:11px 12px; border-radius:var(--radius-sm); border:1.5px solid var(--line); background:var(--bg);
+    font-size:14px; color:var(--ink); font-family:inherit;
+  }
+  select:focus, input:focus{ outline:2px solid var(--orange); outline-offset:1px; border-color:var(--orange); }
+
+  .payrow{ display:flex; gap:8px; margin-top:6px; }
+  .paybtn{ flex:1; padding:10px; border-radius:var(--radius-sm); border:1.5px solid var(--line); background:var(--panel); font-size:13px; font-weight:600; cursor:pointer; }
+  .paybtn.active{ border-color:var(--orange); background:var(--orange-tint); color:var(--orange-deep); }
+
+  /* live location row */
+  .locrow{ display:flex; gap:8px; }
+  .locrow input{ flex:1; }
+  .locbtn{
+    flex-shrink:0; width:42px; border-radius:var(--radius-sm); border:1.5px solid var(--line); background:var(--teal-tint);
+    color:var(--teal); font-size:16px; cursor:pointer;
+  }
+  .locbtn.busy{ opacity:0.6; }
+  .chiprow{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .chip{
+    border:1.5px solid var(--line); background:var(--panel); color:var(--muted); font-size:11.5px; font-weight:600;
+    padding:6px 10px; border-radius:999px; cursor:pointer;
+  }
+  .chip:active{ background:var(--orange-tint); border-color:var(--orange); color:var(--orange-deep); }
+
+  .distance-display{
+    margin-top:12px; display:flex; align-items:center; gap:8px; background:var(--teal-tint); border:1px solid #CFE9E1;
+    border-radius:var(--radius-sm); padding:10px 12px; font-size:13px; color:var(--teal); font-weight:700;
+  }
+
+  /* phone + OTP */
+  .otp-section{ margin-top:14px; padding-top:14px; border-top:1px dashed var(--line); }
+  .otp-row{ display:flex; gap:8px; }
+  .otp-row input{ flex:1; }
+  .otp-row .mini-btn{
+    flex-shrink:0; padding:0 14px; border-radius:var(--radius-sm); border:none; background:var(--teal); color:white;
+    font-weight:700; font-size:12.5px; cursor:pointer; white-space:nowrap;
+  }
+  .otp-row .mini-btn[disabled]{ opacity:0.55; }
+  .otp-hint{ font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.5; }
+  .otp-status{ display:flex; align-items:center; gap:6px; margin-top:8px; font-size:12.5px; font-weight:700; }
+  .otp-status.ok{ color:var(--teal); }
+  .otp-status.err{ color:var(--red); }
+
+  /* rider deposit */
+  .deposit-badge{ display:inline-block; padding:4px 10px; border-radius:999px; font-size:11.5px; font-weight:700; }
+  .deposit-badge.pending{ background:var(--red-tint); color:var(--red); }
+  .deposit-badge.paid{ background:var(--teal-tint); color:var(--teal); }
+  .locked{ opacity:0.5; }
+  .locked .switch{ pointer-events:none; }
+  .lock-note{ display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:var(--red); margin-top:10px; background:var(--red-tint); border-radius:10px; padding:8px 10px; }
+
+  .farebox{
+    margin-top:16px; padding:14px; border-radius:var(--radius-sm); background:var(--orange-tint); border:1px solid #FFDCB8;
+    display:flex; justify-content:space-between; align-items:flex-start;
+  }
+  .farebox .amt{ font-family:'Baloo 2'; font-size:26px; font-weight:700; color:var(--orange-deep); }
+  .farebox .lbl{ font-size:12px; color:#8A5A2E; margin-top:2px; max-width:230px; }
+
+  .cta{
+    width:100%; margin-top:14px; padding:14px; border:none; border-radius:14px; background:var(--orange);
+    color:white; font-weight:700; font-size:15px; cursor:pointer; box-shadow:0 6px 16px rgba(255,122,26,0.35);
+  }
+  .cta:active{ background:var(--orange-deep); }
+  .cta[disabled]{ opacity:0.7; }
+
+  /* fixed routes list */
+  .route-row{ display:flex; justify-content:space-between; padding:10px 2px; border-bottom:1px solid var(--line); font-size:13.5px; }
+  .route-row:last-child{ border-bottom:none; }
+  .route-row .fare{ font-weight:700; color:var(--orange-deep); }
+  .route-note{ font-size:11.5px; color:var(--muted); margin-top:8px; line-height:1.5; }
+
+  /* matching state */
+  .matching{ text-align:center; padding:10px 4px 4px; }
+  .spinner{ width:34px; height:34px; margin:4px auto 12px; border-radius:50%; border:3px solid var(--line); border-top-color:var(--orange); animation:spin 0.8s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .matching .m1{ font-weight:700; font-size:14.5px; }
+  .matching .m2{ font-size:12.5px; color:var(--muted); margin-top:3px; }
+
+  /* driver card */
+  .driver-card{ display:flex; gap:12px; align-items:center; }
+  .avatar{ width:52px; height:52px; border-radius:50%; background:linear-gradient(155deg,#FFD9B0,var(--orange)); display:flex; align-items:center; justify-content:center; font-family:'Baloo 2'; font-weight:700; color:white; font-size:19px; flex-shrink:0; }
+  .driver-info .name{ font-weight:700; font-size:15px; display:flex; align-items:center; gap:6px; }
+  .verified-badge{ background:var(--teal-tint); color:var(--teal); font-size:10.5px; font-weight:700; padding:2px 6px; border-radius:6px; }
+  .driver-info .meta{ font-size:12.5px; color:var(--muted); margin-top:2px; }
+  .driver-info .rating{ color:#C97A0F; font-weight:700; }
+  .eta-row{ display:flex; justify-content:space-between; margin-top:14px; padding-top:12px; border-top:1px solid var(--line); font-size:13px; }
+  .eta-row b{ font-size:15px; }
+
+  .safety-actions{ display:flex; gap:8px; margin-top:12px; }
+  .safety-btn{ flex:1; padding:11px 8px; border-radius:12px; font-weight:700; font-size:12.5px; border:1.5px solid var(--line); background:var(--panel); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .safety-btn.sos{ border-color:#F3C4C4; background:var(--red-tint); color:var(--red); }
+  .safety-btn .ic{ font-size:17px; }
+
+  /* rider view */
+  .toggle-row{ display:flex; align-items:center; justify-content:space-between; }
+  .switch{ position:relative; width:46px; height:26px; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider{ position:absolute; inset:0; background:var(--line); border-radius:999px; cursor:pointer; transition:0.2s; }
+  .slider:before{ content:""; position:absolute; height:20px; width:20px; left:3px; top:3px; background:white; border-radius:50%; transition:0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+  input:checked + .slider{ background:var(--teal); }
+  input:checked + .slider:before{ transform:translateX(20px); }
+
+  .stat-grid{ display:flex; gap:10px; margin-top:12px; }
+  .stat{ flex:1; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px; text-align:center; }
+  .stat .v{ font-family:'Baloo 2'; font-size:20px; font-weight:700; }
+  .stat .l{ font-size:11px; color:var(--muted); margin-top:2px; }
+
+  .radius-vis{ position:relative; height:120px; border-radius:var(--radius-sm); background:radial-gradient(circle at center, var(--teal-tint), var(--bg) 70%); border:1px solid var(--line); margin-top:12px; overflow:hidden; }
+  .radius-vis .ring{ position:absolute; border:1.5px dashed #A9D6CB; border-radius:50%; top:50%; left:50%; transform:translate(-50%,-50%); }
+  .radius-vis .r1{ width:60px; height:60px; }
+  .radius-vis .r2{ width:100px; height:100px; }
+  .radius-vis .center{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:12px; height:12px; border-radius:50%; background:var(--teal); box-shadow:0 0 0 4px rgba(15,122,108,0.18); }
+  .radius-vis .label{ position:absolute; bottom:8px; left:10px; font-size:11px; color:var(--muted); background:rgba(255,255,255,0.85); padding:2px 6px; border-radius:6px; }
+
+  .referral-code{ display:flex; align-items:center; justify-content:space-between; background:var(--orange-tint); border:1px dashed #FFC98C; border-radius:12px; padding:10px 12px; margin-top:8px; }
+  .referral-code code{ font-weight:700; font-family:'Baloo 2'; color:var(--orange-deep); font-size:15px; }
+  .copy-btn{ border:none; background:var(--orange); color:white; font-size:12px; font-weight:700; padding:6px 10px; border-radius:8px; cursor:pointer; }
+
+  .bonus-bar-track{ height:8px; background:var(--line); border-radius:999px; margin-top:8px; overflow:hidden; }
+  .bonus-bar-fill{ height:100%; background:var(--teal); width:0%; border-radius:999px; transition:width 0.4s; }
+
+  footer{
+    margin-top:auto; padding:20px 18px 28px; background:var(--ink); color:#D9CEC0;
+  }
+  footer .fgrid{ display:flex; flex-wrap:wrap; gap:16px 26px; }
+  footer .fcol{ min-width:120px; }
+  footer .fcol h4{ font-size:12px; color:white; margin:0 0 8px; }
+  footer .fcol a, footer .fcol div{ display:block; font-size:12.5px; color:#B9AE9F; text-decoration:none; margin-bottom:6px; }
+  footer .legal{ margin-top:16px; padding-top:14px; border-top:1px solid #3A3024; font-size:11px; color:#8A7C6B; line-height:1.6; }
+
+  .toast{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--ink); color:white; padding:12px 18px;
+    border-radius:12px; font-size:13.5px; font-weight:600; opacity:0; transition:0.25s; pointer-events:none; z-index:50; box-shadow:0 8px 20px rgba(0,0,0,0.25); max-width:88%; text-align:center;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body data-lang="en">
+<div class="app">
+
+  <header class="top">
+    <div class="brandmark">
+      <div class="logo">MG</div>
+      <div>
+        <div class="brand" data-i18n="brand">MumbraGo</div>
+        <div class="tagline" data-i18n="tagline">Fatafat rides and deliveries, only in Mumbra</div>
+      </div>
+    </div>
+    <div class="langtoggle">
+      <button data-lang-btn="en" class="active">EN</button>
+      <button data-lang-btn="hi">हि</button>
+      <button data-lang-btn="mr">मर</button>
+    </div>
+  </header>
+
+  <div class="roles">
+    <button data-role="customer" class="active" data-i18n="roleCustomer">Customer</button>
+    <button data-role="rider" data-i18n="roleRider">Rider</button>
+    <button data-role="shop" data-i18n="roleShop">Shop</button>
+  </div>
+
+  <main>
+
+    <!-- CUSTOMER VIEW -->
+    <section class="view active" id="view-customer">
+
+      <div class="trust-strip">
+        <div class="trust-chip"><span class="ic">🪪</span><span data-i18n="trustId">ID-verified riders</span></div>
+        <div class="trust-chip"><span class="ic">📍</span><span data-i18n="trustShare">Live trip sharing</span></div>
+        <div class="trust-chip"><span class="ic">🆘</span><span data-i18n="trustSOS">SOS button</span></div>
+      </div>
+
+      <div class="card" id="booking-card">
+        <h3 data-i18n="whatNeed">What do you need?</h3>
+        <div class="modes">
+          <div class="mode active" data-mode="ride">
+            <div class="ic">🏍️</div>
+            <div class="t" data-i18n="bookRide">Book a ride</div>
+            <div class="s" data-i18n="bookRideSub">Reach faster than an auto</div>
+          </div>
+          <div class="mode" data-mode="delivery">
+            <div class="ic">📦</div>
+            <div class="t" data-i18n="sendDelivery">Send a delivery</div>
+            <div class="s" data-i18n="sendDeliverySub">For shop orders</div>
+          </div>
+        </div>
+
+        <label class="field-label" data-i18n="pickup">Pickup</label>
+        <div class="locrow">
+          <input type="text" value="Kausa Kabristan" id="pickup-input" data-i18n-ph="pickupPh" placeholder="Enter pickup location">
+          <button type="button" class="locbtn" id="pickup-locate-btn" title="Use my current location">📍</button>
+        </div>
+
+        <label class="field-label" data-i18n="drop">Drop</label>
+        <div class="locrow">
+          <input type="text" id="drop-input" data-i18n-ph="dropPh" placeholder="Enter drop location">
+          <button type="button" class="locbtn" id="drop-locate-btn" title="Use my current location">📍</button>
+        </div>
+        <div class="chiprow">
+          <button type="button" class="chip" data-drop="Mumbra Station">Mumbra station</button>
+          <button type="button" class="chip" data-drop="Shilphata">Shilphata</button>
+          <button type="button" class="chip" data-drop="Kalyan Phata">Kalyan phata</button>
+        </div>
+
+        <div class="distance-display" id="distance-display" style="display:none;">
+          <span>📏</span><span id="distance-value">-- km</span>
+        </div>
+
+        <label class="field-label" data-i18n="paymentMethod">Payment method</label>
+        <div class="payrow">
+          <button class="paybtn active" data-pay="cash">💵 <span data-i18n="cash">Cash</span></button>
+          <button class="paybtn" data-pay="upi">📲 UPI</button>
+        </div>
+
+        <div class="farebox">
+          <div>
+            <div class="amt" id="fare-amount">₹--</div>
+          </div>
+          <div class="lbl" id="fare-explain" data-i18n="fareExplainLive">Live fare — ₹5 base + ₹10/km, tracked from your pickup to drop point.</div>
+        </div>
+
+        <button class="cta" id="calc-fare-btn" data-i18n="calcFare">Track distance &amp; get fare</button>
+
+        <div class="otp-section" id="otp-section" style="display:none;">
+          <label class="field-label" data-i18n="phoneLabel">Your WhatsApp number</label>
+          <div class="otp-row">
+            <input type="text" id="phone-input" data-i18n-ph="phonePh" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10">
+            <button type="button" class="mini-btn" id="send-otp-btn" data-i18n="sendOtp">Send OTP</button>
+          </div>
+          <div class="otp-hint" data-i18n="otpHint">We'll send a 4-digit code on WhatsApp to confirm this is really you before we assign a rider.</div>
+
+          <div id="otp-verify-row" style="display:none; margin-top:10px;">
+            <label class="field-label" data-i18n="otpLabel">Enter OTP</label>
+            <div class="otp-row">
+              <input type="text" id="otp-input" data-i18n-ph="otpPh" placeholder="4-digit code" inputmode="numeric" maxlength="4">
+              <button type="button" class="mini-btn" id="verify-otp-btn" data-i18n="verifyOtp">Verify</button>
+            </div>
+          </div>
+          <div class="otp-status" id="otp-status" style="display:none;"></div>
+        </div>
+
+        <button class="cta" id="find-rider-btn" data-i18n="findRider" style="display:none;" disabled>Find a rider</button>
+      </div>
+
+      <!-- Matching / result area -->
+      <div class="card" id="matching-card" style="display:none;"></div>
+
+      <div class="card">
+        <h3 data-i18n="fixedRoutesTitle">How live fare works</h3>
+        <div class="route-note" data-i18n="routeNote">We track the distance between your live pickup and drop location. Fare = ₹5 base fare + ₹10 per kilometre, shown to you before you confirm — no fixed routes, no surge.</div>
+      </div>
+    </section>
+
+    <!-- RIDER VIEW -->
+    <section class="view" id="view-rider">
+      <div class="card">
+        <div class="toggle-row">
+          <div>
+            <h3 style="margin-bottom:2px;" data-i18n="depositTitle">Security deposit</h3>
+            <div class="tagline" data-i18n="depositSub">One-time ₹100 deposit to start accepting rides</div>
+          </div>
+          <span class="deposit-badge pending" id="deposit-badge" data-i18n="depositPending">Not paid</span>
+        </div>
+        <button class="cta" id="pay-deposit-btn" data-i18n="payDeposit">Pay ₹100 deposit</button>
+        <div class="route-note" data-i18n="depositNote">Refundable whenever you stop working as a MumbraGo rider. Riders with zero deposit can't go online or accept ride requests.</div>
+      </div>
+
+      <div class="card" id="goonline-card">
+        <div class="toggle-row">
+          <div>
+            <h3 style="margin-bottom:2px;" data-i18n="goOnline">Go online</h3>
+            <div class="tagline" data-i18n="goOnlineSub">Get ride and delivery requests</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="online-toggle" disabled>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="lock-note" id="deposit-lock-note">🔒 <span data-i18n="depositRequired">Pay your ₹100 deposit above to unlock going online</span></div>
+
+        <div class="radius-vis">
+          <div class="ring r2"></div>
+          <div class="ring r1"></div>
+          <div class="center"></div>
+          <div class="label" id="radius-label" data-i18n="radiusOff">Go online to see your request radius</div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat"><div class="v" id="earnings-val">₹0</div><div class="l" data-i18n="earningsToday">Today's earnings</div></div>
+          <div class="stat"><div class="v" id="rides-val">0</div><div class="l" data-i18n="ridesToday">Rides today</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="referTitle">Refer a rider, earn ₹150 after their first 10 rides</h3>
+        <div class="referral-code">
+          <code id="referral-code">MG-RAHUL21</code>
+          <button class="copy-btn" id="copy-referral" data-i18n="copy">Copy</button>
+        </div>
+        <div class="route-note" data-i18n="referralNote">This code is unique to your rider account and tracks automatically — it's not shared across riders.</div>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="bonusTitle">Bonus progress (10 rides = ₹50 bonus)</h3>
+        <div class="bonus-bar-track"><div class="bonus-bar-fill" id="bonus-fill"></div></div>
+        <div class="route-note" id="bonus-count">0 <span data-i18n="of10">of 10 rides</span></div>
+      </div>
+    </section>
+
+    <!-- SHOP VIEW (stub) -->
+    <section class="view" id="view-shop">
+      <div class="card">
+        <h3 data-i18n="shopTitle">New delivery request</h3>
+        <label class="field-label" data-i18n="shopName">Shop name</label>
+        <input type="text" placeholder="e.g. Sai Medical">
+        <label class="field-label" data-i18n="customerDrop">Customer drop address</label>
+        <input type="text" placeholder="e.g. Near Mumbra station">
+        <label class="field-label" data-i18n="itemDesc">Item description</label>
+        <input type="text" placeholder="e.g. 2 bags, medicines">
+        <button class="cta" data-i18n="findRider">Find a rider</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="fgrid">
+      <div class="fcol">
+        <h4 data-i18n="fSupport">Support</h4>
+        <a href="tel:+911234567890">📞 <span data-i18n="fCallUs">Call us</span></a>
+        <a href="https://wa.me/911234567890" target="_blank" rel="noopener">💬 WhatsApp</a>
+        <a href="mailto:help@mumbrago.in">✉️ help@mumbrago.in</a>
+      </div>
+      <div class="fcol">
+        <h4 data-i18n="fCompany">Company</h4>
+        <div data-i18n="fAbout">About MumbraGo</div>
+        <div data-i18n="fSafety">Safety standards</div>
+        <div data-i18n="fTerms">Terms of service</div>
+        <div data-i18n="fPrivacy">Privacy policy</div>
+      </div>
+    </div>
+    <div class="legal" data-i18n="fLegal">MumbraGo is a local ride &amp; delivery service operating within Mumbra. All riders complete phone and ID verification before going online.</div>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- i18n ---------- */
+const i18n = {
+  en: {
+    brand:"MumbraGo", tagline:"Fatafat rides and deliveries, only in Mumbra",
+    roleCustomer:"Customer", roleRider:"Rider", roleShop:"Shop",
+    trustId:"ID-verified riders", trustShare:"Live trip sharing", trustSOS:"SOS button",
+    whatNeed:"What do you need?", bookRide:"Book a ride", bookRideSub:"Reach faster than an auto",
+    sendDelivery:"Send a delivery", sendDeliverySub:"For shop orders",
+    pickup:"Pickup", drop:"Drop", approxDist:"Approx distance (km)",
+    pickupPh:"Enter pickup location", dropPh:"Enter drop location",
+    paymentMethod:"Payment method", cash:"Cash",
+    fareExplainFixed:"Fixed fare for this route — same every time, no surge.",
+    fareExplainOther:"Estimated at ₹9/km. Final fare shown before you confirm.",
+    fareExplainLive:"Live fare — ₹5 base + ₹10/km, tracked from your pickup to drop point.",
+    calcFare:"Track distance &amp; get fare",
+    tracking:"Tracking…",
+    needBothPoints:"Please enter both pickup and drop location",
+    geocodeFail:"Couldn't locate that address, try adding more detail",
+    locateSuccess:"Location captured",
+    locateFail:"Couldn't get your location — check location permission",
+    geoUnsupported:"Location isn't supported on this device",
+    phoneLabel:"Your WhatsApp number", phonePh:"10-digit mobile number",
+    sendOtp:"Send OTP", badPhone:"Enter a valid 10-digit number",
+    otpHint:"We'll send a 4-digit code on WhatsApp to confirm this is really you before we assign a rider.",
+    otpSentToast:"OTP sent on WhatsApp — enter it below to confirm",
+    otpLabel:"Enter OTP", otpPh:"4-digit code", verifyOtp:"Verify",
+    otpOk:"OTP verified — ride confirmed", otpErr:"Incorrect OTP, please try again",
+    findRider:"Find a rider",
+    fixedRoutesTitle:"How live fare works",
+    rMumbra:"Mumbra station", rShilphata:"Shilphata", rKalyan:"Kalyan phata",
+    routeNote:"We track the distance between your live pickup and drop location. Fare = ₹5 base fare + ₹10 per kilometre, shown to you before you confirm — no fixed routes, no surge.",
+    matching1:"Finding a rider near you…", matching2:"Usually takes under 2 minutes",
+    verified:"Verified", etaLabel:"Arriving in", vehicleLabel:"Vehicle",
+    sos:"SOS", shareTrip:"Share trip", cancel:"Cancel",
+    goOnline:"Go online", goOnlineSub:"Get ride and delivery requests",
+    depositTitle:"Security deposit", depositSub:"One-time ₹100 deposit to start accepting rides",
+    depositPending:"Not paid", depositPaid:"Deposit paid",
+    payDeposit:"Pay ₹100 deposit", depositProcessing:"Processing…",
+    depositNote:"Refundable whenever you stop working as a MumbraGo rider. Riders with zero deposit can't go online or accept ride requests.",
+    depositRequired:"Pay your ₹100 deposit above to unlock going online",
+    depositSuccessToast:"₹100 deposit received — you can go online now",
+    radiusOff:"Go online to see your request radius", radiusOn:"Requests coming from ~1.5 km around you",
+    earningsToday:"Today's earnings", ridesToday:"Rides today",
+    referTitle:"Refer a rider, earn ₹150 after their first 10 rides", copy:"Copy",
+    referralNote:"This code is unique to your rider account and tracks automatically — it's not shared across riders.",
+    bonusTitle:"Bonus progress (10 rides = ₹50 bonus)", of10:"of 10 rides",
+    shopTitle:"New delivery request", shopName:"Shop name", customerDrop:"Customer drop address", itemDesc:"Item description",
+    fSupport:"Support", fCallUs:"Call us", fCompany:"Company", fAbout:"About MumbraGo", fSafety:"Safety standards",
+    fTerms:"Terms of service", fPrivacy:"Privacy policy",
+    fLegal:"MumbraGo is a local ride &amp; delivery service operating within Mumbra. All riders complete phone and ID verification before going online.",
+    toastCopied:"Referral code copied", toastSOS:"SOS alert sent to your emergency contact", toastShare:"Trip link ready to share",
+    toastOnline:"You're online — watching for requests", toastOffline:"You're offline"
+  },
+  hi: {
+    brand:"मुंब्राGo", tagline:"मुंब्रा में झटपट राइड और डिलीवरी",
+    roleCustomer:"ग्राहक", roleRider:"राइडर", roleShop:"दुकान",
+    trustId:"ID-सत्यापित राइडर", trustShare:"लाइव ट्रिप शेयरिंग", trustSOS:"SOS बटन",
+    whatNeed:"आपको क्या चाहिए?", bookRide:"राइड बुक करें", bookRideSub:"ऑटो से तेज़ पहुंचें",
+    sendDelivery:"डिलीवरी भेजें", sendDeliverySub:"दुकान के ऑर्डर के लिए",
+    pickup:"पिकअप", drop:"ड्रॉप", approxDist:"अनुमानित दूरी (किमी)",
+    pickupPh:"पिकअप स्थान डालें", dropPh:"ड्रॉप स्थान डालें",
+    paymentMethod:"भुगतान का तरीका", cash:"नकद",
+    fareExplainFixed:"इस रूट का फिक्स किराया — हर बार वही, कोई सर्ज नहीं।",
+    fareExplainOther:"लगभग ₹9/किमी। बुक करने से पहले पूरा किराया दिखेगा।",
+    fareExplainLive:"लाइव किराया — ₹5 बेस + ₹10/किमी, आपके पिकअप से ड्रॉप तक ट्रैक किया गया।",
+    calcFare:"दूरी ट्रैक करें और किराया पाएं",
+    tracking:"ट्रैक हो रहा है…",
+    needBothPoints:"कृपया पिकअप और ड्रॉप दोनों स्थान डालें",
+    geocodeFail:"यह पता नहीं मिला, थोड़ा और विवरण जोड़ें",
+    locateSuccess:"लोकेशन मिल गई",
+    locateFail:"लोकेशन नहीं मिल पाई — लोकेशन परमिशन जांचें",
+    geoUnsupported:"इस डिवाइस पर लोकेशन सपोर्ट नहीं है",
+    phoneLabel:"आपका व्हाट्सएप नंबर", phonePh:"10-अंकों का मोबाइल नंबर",
+    sendOtp:"OTP भेजें", badPhone:"सही 10-अंकों का नंबर डालें",
+    otpHint:"राइडर देने से पहले, यह वाकई आप हैं यह कन्फर्म करने के लिए हम व्हाट्सएप पर 4-अंकों का कोड भेजेंगे।",
+    otpSentToast:"OTP व्हाट्सएप पर भेजा गया — कन्फर्म करने के लिए नीचे डालें",
+    otpLabel:"OTP डालें", otpPh:"4-अंकों का कोड", verifyOtp:"वेरिफाई करें",
+    otpOk:"OTP वेरिफाई हुआ — राइड कन्फर्म", otpErr:"गलत OTP, फिर से कोशिश करें",
+    findRider:"राइडर खोजें",
+    fixedRoutesTitle:"लाइव किराया कैसे काम करता है",
+    rMumbra:"मुंब्रा स्टेशन", rShilphata:"शिलफाटा", rKalyan:"कल्याण फाटा",
+    routeNote:"हम आपके लाइव पिकअप और ड्रॉप स्थान के बीच की दूरी ट्रैक करते हैं। किराया = ₹5 बेस फेयर + ₹10 प्रति किलोमीटर, कन्फर्म करने से पहले दिखाया जाता है — कोई फिक्स रूट नहीं, कोई सर्ज नहीं।",
+    matching1:"आपके पास राइडर ढूंढा जा रहा है…", matching2:"आमतौर पर 2 मिनट से कम लगता है",
+    verified:"सत्यापित", etaLabel:"पहुंचने में", vehicleLabel:"वाहन",
+    sos:"SOS", shareTrip:"ट्रिप शेयर करें", cancel:"रद्द करें",
+    goOnline:"ऑनलाइन जाएं", goOnlineSub:"राइड और डिलीवरी रिक्वेस्ट पाएं",
+    depositTitle:"सिक्योरिटी डिपॉज़िट", depositSub:"राइड लेना शुरू करने के लिए एक बार ₹100 डिपॉज़िट",
+    depositPending:"जमा नहीं हुआ", depositPaid:"डिपॉज़िट जमा हुआ",
+    payDeposit:"₹100 डिपॉज़िट भरें", depositProcessing:"प्रोसेस हो रहा है…",
+    depositNote:"जब भी आप राइडर का काम बंद करें, यह रिफंडेबल है। बिना डिपॉज़िट वाले राइडर ऑनलाइन नहीं जा सकते या रिक्वेस्ट नहीं ले सकते।",
+    depositRequired:"ऑनलाइन जाने के लिए ऊपर ₹100 डिपॉज़िट भरें",
+    depositSuccessToast:"₹100 डिपॉज़िट मिल गया — अब आप ऑनलाइन जा सकते हैं",
+    radiusOff:"रिक्वेस्ट रेडियस देखने के लिए ऑनलाइन जाएं", radiusOn:"~1.5 किमी के दायरे से रिक्वेस्ट आ रही हैं",
+    earningsToday:"आज की कमाई", ridesToday:"आज की राइड",
+    referTitle:"राइडर रेफर करें, उनकी पहली 10 राइड के बाद ₹150 कमाएं", copy:"कॉपी करें",
+    referralNote:"यह कोड आपके राइडर अकाउंट के लिए यूनीक है और अपने आप ट्रैक होता है।",
+    bonusTitle:"बोनस प्रगति (10 राइड = ₹50 बोनस)", of10:"/ 10 राइड",
+    shopTitle:"नई डिलीवरी रिक्वेस्ट", shopName:"दुकान का नाम", customerDrop:"ग्राहक का पता", itemDesc:"सामान का विवरण",
+    fSupport:"सहायता", fCallUs:"कॉल करें", fCompany:"कंपनी", fAbout:"MumbraGo के बारे में", fSafety:"सुरक्षा मानक",
+    fTerms:"सेवा की शर्तें", fPrivacy:"प्राइवेसी पॉलिसी",
+    fLegal:"MumbraGo मुंब्रा में एक लोकल राइड और डिलीवरी सेवा है। ऑनलाइन जाने से पहले सभी राइडर फोन और ID सत्यापन पूरा करते हैं।",
+    toastCopied:"रेफरल कोड कॉपी हो गया", toastSOS:"SOS अलर्ट आपके इमरजेंसी कॉन्टैक्ट को भेजा गया", toastShare:"ट्रिप लिंक शेयर के लिए तैयार",
+    toastOnline:"आप ऑनलाइन हैं — रिक्वेस्ट का इंतज़ार", toastOffline:"आप ऑफ़लाइन हैं"
+  },
+  mr: {
+    brand:"मुंब्राGo", tagline:"मुंब्य्रात फटाफट राइड आणि डिलिव्हरी",
+    roleCustomer:"ग्राहक", roleRider:"रायडर", roleShop:"दुकान",
+    trustId:"ID-पडताळणी केलेले रायडर", trustShare:"लाइव्ह ट्रिप शेअरिंग", trustSOS:"SOS बटण",
+    whatNeed:"तुम्हाला काय हवं?", bookRide:"राइड बुक करा", bookRideSub:"ऑटोपेक्षा वेगाने पोहोचा",
+    sendDelivery:"डिलिव्हरी पाठवा", sendDeliverySub:"दुकानाच्या ऑर्डरसाठी",
+    pickup:"पिकअप", drop:"ड्रॉप", approxDist:"अंदाजे अंतर (किमी)",
+    pickupPh:"पिकअप स्थान टाका", dropPh:"ड्रॉप स्थान टाका",
+    paymentMethod:"पेमेंट पद्धत", cash:"रोख",
+    fareExplainFixed:"या मार्गाचं फिक्स भाडं — दरवेळी तेच, सर्ज नाही.",
+    fareExplainOther:"अंदाजे ₹9/किमी. बुक करण्यापूर्वी अंतिम भाडं दाखवलं जाईल.",
+    fareExplainLive:"लाइव्ह भाडं — ₹5 बेस + ₹10/किमी, तुमच्या पिकअप ते ड्रॉपपर्यंत ट्रॅक केलं जातं.",
+    calcFare:"अंतर ट्रॅक करा आणि भाडं मिळवा",
+    tracking:"ट्रॅक होत आहे…",
+    needBothPoints:"कृपया पिकअप आणि ड्रॉप दोन्ही स्थानं टाका",
+    geocodeFail:"हा पत्ता सापडला नाही, अजून तपशील टाका",
+    locateSuccess:"लोकेशन मिळालं",
+    locateFail:"लोकेशन मिळालं नाही — लोकेशन परवानगी तपासा",
+    geoUnsupported:"या डिव्हाइसवर लोकेशन सपोर्ट नाही",
+    phoneLabel:"तुमचा व्हॉट्सअॅप नंबर", phonePh:"10-अंकी मोबाइल नंबर",
+    sendOtp:"OTP पाठवा", badPhone:"योग्य 10-अंकी नंबर टाका",
+    otpHint:"रायडर देण्याआधी, हे खरंच तुम्हीच आहात हे कन्फर्म करण्यासाठी आम्ही व्हॉट्सअॅपवर 4-अंकी कोड पाठवू.",
+    otpSentToast:"OTP व्हॉट्सअॅपवर पाठवला — कन्फर्म करण्यासाठी खाली टाका",
+    otpLabel:"OTP टाका", otpPh:"4-अंकी कोड", verifyOtp:"व्हेरिफाय करा",
+    otpOk:"OTP व्हेरिफाय झाला — राइड कन्फर्म", otpErr:"चुकीचा OTP, पुन्हा प्रयत्न करा",
+    findRider:"रायडर शोधा",
+    fixedRoutesTitle:"लाइव्ह भाडं कसं काम करतं",
+    rMumbra:"मुंब्रा स्टेशन", rShilphata:"शीळफाटा", rKalyan:"कल्याण फाटा",
+    routeNote:"आम्ही तुमच्या लाइव्ह पिकअप आणि ड्रॉप स्थानामधलं अंतर ट्रॅक करतो. भाडं = ₹5 बेस फेअर + ₹10 प्रति किलोमीटर, कन्फर्म करण्यापूर्वी दाखवलं जातं — फिक्स मार्ग नाही, सर्ज नाही.",
+    matching1:"तुमच्या जवळचा रायडर शोधत आहोत…", matching2:"साधारण 2 मिनिटांत मिळतो",
+    verified:"पडताळणी झाली", etaLabel:"येण्यासाठी वेळ", vehicleLabel:"वाहन",
+    sos:"SOS", shareTrip:"ट्रिप शेअर करा", cancel:"रद्द करा",
+    goOnline:"ऑनलाइन जा", goOnlineSub:"राइड आणि डिलिव्हरी रिक्वेस्ट मिळवा",
+    depositTitle:"सिक्युरिटी डिपॉझिट", depositSub:"राइड्स घेणं सुरू करण्यासाठी एकदाच ₹100 डिपॉझिट",
+    depositPending:"भरलेलं नाही", depositPaid:"डिपॉझिट भरलं",
+    payDeposit:"₹100 डिपॉझिट भरा", depositProcessing:"प्रोसेस होत आहे…",
+    depositNote:"तुम्ही रायडरचं काम थांबवता तेव्हा हे रिफंडेबल असतं. शून्य डिपॉझिट असलेले रायडर ऑनलाइन जाऊ शकत नाहीत किंवा रिक्वेस्ट घेऊ शकत नाहीत.",
+    depositRequired:"ऑनलाइन जाण्यासाठी वर ₹100 डिपॉझिट भरा",
+    depositSuccessToast:"₹100 डिपॉझिट मिळालं — आता तुम्ही ऑनलाइन जाऊ शकता",
+    radiusOff:"रिक्वेस्ट रेडियस पाहण्यासाठी ऑनलाइन जा", radiusOn:"~1.5 किमी परिसरातून रिक्वेस्ट येत आहेत",
+    earningsToday:"आजची कमाई", ridesToday:"आजच्या राइड्स",
+    referTitle:"रायडरला रेफर करा, त्यांच्या पहिल्या 10 राइड्सनंतर ₹150 मिळवा", copy:"कॉपी करा",
+    referralNote:"हा कोड तुमच्या रायडर खात्यासाठी युनिक आहे आणि आपोआप ट्रॅक होतो.",
+    bonusTitle:"बोनस प्रगती (10 राइड्स = ₹50 बोनस)", of10:"/ 10 राइड्स",
+    shopTitle:"नवीन डिलिव्हरी रिक्वेस्ट", shopName:"दुकानाचं नाव", customerDrop:"ग्राहकाचा पत्ता", itemDesc:"वस्तूचं वर्णन",
+    fSupport:"मदत", fCallUs:"कॉल करा", fCompany:"कंपनी", fAbout:"MumbraGo बद्दल", fSafety:"सुरक्षा मानकं",
+    fTerms:"सेवा अटी", fPrivacy:"गोपनीयता धोरण",
+    fLegal:"MumbraGo ही मुंब्य्रातील स्थानिक राइड आणि डिलिव्हरी सेवा आहे. ऑनलाइन जाण्यापूर्वी सर्व रायडर फोन आणि ID पडताळणी पूर्ण करतात.",
+    toastCopied:"रेफरल कोड कॉपी झाला", toastSOS:"SOS अलर्ट तुमच्या इमर्जन्सी कॉन्टॅक्टला पाठवला", toastShare:"ट्रिप लिंक शेअरसाठी तयार",
+    toastOnline:"तुम्ही ऑनलाइन आहात — रिक्वेस्टची वाट पाहत आहोत", toastOffline:"तुम्ही ऑफलाइन आहात"
+  }
+};
+let currentLang = 'en';
+function applyLang(lang){
+  currentLang = lang;
+  document.body.setAttribute('data-lang', lang);
+  document.querySelectorAll('[data-lang-btn]').forEach(b=>b.classList.toggle('active', b.dataset.langBtn===lang));
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key = el.getAttribute('data-i18n');
+    if(i18n[lang][key]) el.innerHTML = i18n[lang][key];
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    const key = el.getAttribute('data-i18n-ph');
+    if(i18n[lang][key]) el.setAttribute('placeholder', i18n[lang][key]);
+  });
+  updateRadiusLabel();
+}
+document.querySelectorAll('[data-lang-btn]').forEach(btn=>{
+  btn.addEventListener('click', ()=>applyLang(btn.dataset.langBtn));
+});
+
+/* ---------- toast ---------- */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+/* ---------- role tabs ---------- */
+document.querySelectorAll('.roles button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.roles button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+btn.dataset.role).classList.add('active');
+  });
+});
+
+/* ---------- booking mode ---------- */
+document.querySelectorAll('.mode').forEach(m=>{
+  m.addEventListener('click', ()=>{
+    document.querySelectorAll('.mode').forEach(x=>x.classList.remove('active'));
+    m.classList.add('active');
+  });
+});
+
+/* ---------- payment ---------- */
+document.querySelectorAll('.paybtn').forEach(p=>{
+  p.addEventListener('click', ()=>{
+    document.querySelectorAll('.paybtn').forEach(x=>x.classList.remove('active'));
+    p.classList.add('active');
+  });
+});
+
+/* ---------- live distance + fare logic ---------- */
+const BASE_FARE = 5;
+const RATE_PER_KM = 10;
+const ROAD_FACTOR = 1.35; // straight-line -> approx road-distance correction
+
+const pickupInput = document.getElementById('pickup-input');
+const dropInput = document.getElementById('drop-input');
+const pickupLocateBtn = document.getElementById('pickup-locate-btn');
+const dropLocateBtn = document.getElementById('drop-locate-btn');
+const distanceDisplay = document.getElementById('distance-display');
+const distanceValue = document.getElementById('distance-value');
+const calcFareBtn = document.getElementById('calc-fare-btn');
+const fareAmountEl = document.getElementById('fare-amount');
+const otpSection = document.getElementById('otp-section');
+const findBtn = document.getElementById('find-rider-btn');
+
+let pickupCoords = null; // {lat, lon}
+let dropCoords = null;
+let lastFare = null;
+
+function haversineKm(a, b){
+  const R = 6371;
+  const dLat = (b.lat - a.lat) * Math.PI/180;
+  const dLon = (b.lon - a.lon) * Math.PI/180;
+  const s = Math.sin(dLat/2)**2 + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1-s));
+}
+
+async function geocode(query){
+  const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query + ', Mumbra, Maharashtra, India');
+  const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+  const data = await res.json();
+  if(!data || !data.length) throw new Error('not found');
+  return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+}
+
+async function reverseGeocode(lat, lon){
+  const url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon;
+  const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+  const data = await res.json();
+  return data && data.display_name ? data.display_name : (lat.toFixed(5) + ', ' + lon.toFixed(5));
+}
+
+function useMyLocation(inputEl, btnEl, onCoords){
+  const t = i18n[currentLang];
+  if(!navigator.geolocation){ toast(t.geoUnsupported); return; }
+  btnEl.classList.add('busy');
+  navigator.geolocation.getCurrentPosition(async (pos)=>{
+    const coords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    onCoords(coords);
+    try{
+      inputEl.value = await reverseGeocode(coords.lat, coords.lon);
+    }catch(e){
+      inputEl.value = coords.lat.toFixed(5) + ', ' + coords.lon.toFixed(5);
+    }
+    btnEl.classList.remove('busy');
+    toast(t.locateSuccess);
+  }, ()=>{
+    btnEl.classList.remove('busy');
+    toast(t.locateFail);
+  }, { enableHighAccuracy:true, timeout:10000 });
+}
+
+pickupLocateBtn.addEventListener('click', ()=>{
+  useMyLocation(pickupInput, pickupLocateBtn, (c)=>{ pickupCoords = c; });
+});
+dropLocateBtn.addEventListener('click', ()=>{
+  useMyLocation(dropInput, dropLocateBtn, (c)=>{ dropCoords = c; });
+});
+
+document.querySelectorAll('.chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    dropInput.value = chip.dataset.drop;
+    dropCoords = null; // force fresh geocode of the typed place name
+  });
+});
+
+pickupInput.addEventListener('input', ()=>{ pickupCoords = null; });
+dropInput.addEventListener('input', ()=>{ dropCoords = null; });
+
+function resetPostFareUI(){
+  otpSection.style.display = 'none';
+  document.getElementById('otp-verify-row').style.display = 'none';
+  document.getElementById('otp-status').style.display = 'none';
+  findBtn.style.display = 'none';
+  findBtn.disabled = true;
+  otpVerified = false;
+}
+
+calcFareBtn.addEventListener('click', async ()=>{
+  const t = i18n[currentLang];
+  if(!pickupInput.value.trim() || !dropInput.value.trim()){ toast(t.needBothPoints); return; }
+  calcFareBtn.disabled = true;
+  const originalLabel = calcFareBtn.textContent;
+  calcFareBtn.textContent = t.tracking;
+  try{
+    if(!pickupCoords) pickupCoords = await geocode(pickupInput.value.trim());
+    if(!dropCoords) dropCoords = await geocode(dropInput.value.trim());
+    const straightKm = haversineKm(pickupCoords, dropCoords);
+    const roadKm = Math.max(0.5, straightKm * ROAD_FACTOR);
+    lastFare = Math.round(BASE_FARE + roadKm * RATE_PER_KM);
+    distanceValue.textContent = roadKm.toFixed(1) + ' km';
+    distanceDisplay.style.display = 'flex';
+    fareAmountEl.textContent = '₹' + lastFare;
+    resetPostFareUI();
+    otpSection.style.display = 'block';
+  }catch(e){
+    toast(t.geocodeFail);
+  }finally{
+    calcFareBtn.disabled = false;
+    calcFareBtn.textContent = originalLabel;
+  }
+});
+
+/* ---------- WhatsApp OTP confirmation ---------- */
+let currentOtp = null;
+let otpVerified = false;
+const phoneInput = document.getElementById('phone-input');
+const sendOtpBtn = document.getElementById('send-otp-btn');
+const otpVerifyRow = document.getElementById('otp-verify-row');
+const otpInput = document.getElementById('otp-input');
+const verifyOtpBtn = document.getElementById('verify-otp-btn');
+const otpStatus = document.getElementById('otp-status');
+
+sendOtpBtn.addEventListener('click', ()=>{
+  const t = i18n[currentLang];
+  const phone = phoneInput.value.replace(/\D/g,'');
+  if(phone.length !== 10){ toast(t.badPhone); return; }
+  currentOtp = String(Math.floor(1000 + Math.random()*9000));
+  const waMsg = encodeURIComponent(`MumbraGo ride confirmation OTP: ${currentOtp}. Fare: ₹${lastFare}. Do not share this code with anyone.`);
+  window.open(`https://wa.me/91${phone}?text=${waMsg}`, '_blank');
+  otpVerifyRow.style.display = 'block';
+  otpStatus.style.display = 'none';
+  otpVerified = false;
+  findBtn.style.display = 'none';
+  toast(t.otpSentToast);
+});
+
+verifyOtpBtn.addEventListener('click', ()=>{
+  const t = i18n[currentLang];
+  otpStatus.style.display = 'flex';
+  if(otpInput.value.trim() === currentOtp && currentOtp){
+    otpVerified = true;
+    otpStatus.className = 'otp-status ok';
+    otpStatus.textContent = '✓ ' + t.otpOk;
+    findBtn.style.display = 'block';
+    findBtn.disabled = false;
+  } else {
+    otpVerified = false;
+    otpStatus.className = 'otp-status err';
+    otpStatus.textContent = '✕ ' + t.otpErr;
+    findBtn.style.display = 'none';
+  }
+});
+
+/* ---------- find rider flow ---------- */
+const matchingCard = document.getElementById('matching-card');
+const bookingCard = document.getElementById('booking-card');
+
+findBtn.addEventListener('click', ()=>{
+  const t = i18n[currentLang];
+  bookingCard.style.opacity = '0.55';
+  findBtn.disabled = true;
+  matchingCard.style.display = 'block';
+  matchingCard.innerHTML = `
+    <div class="matching">
+      <div class="spinner"></div>
+      <div class="m1">${t.matching1}</div>
+      <div class="m2">${t.matching2}</div>
+    </div>`;
+
+  setTimeout(()=>{
+    const fare = document.getElementById('fare-amount').textContent;
+    matchingCard.innerHTML = `
+      <div class="driver-card">
+        <div class="avatar">SP</div>
+        <div class="driver-info">
+          <div class="name">Sandeep Pawar <span class="verified-badge">✓ ${t.verified}</span></div>
+          <div class="meta"><span class="rating">★ 4.8</span> · ${t.vehicleLabel}: MH04 EF 5521 · Honda Shine</div>
+        </div>
+      </div>
+      <div class="eta-row">
+        <span>${t.etaLabel} <b>4 min</b></span>
+        <span>${fare}</span>
+      </div>
+      <div class="safety-actions">
+        <button class="safety-btn sos" id="sos-btn"><span class="ic">🆘</span>${t.sos}</button>
+        <button class="safety-btn" id="share-btn"><span class="ic">📍</span>${t.shareTrip}</button>
+        <button class="safety-btn" id="cancel-btn"><span class="ic">✕</span>${t.cancel}</button>
+      </div>`;
+    document.getElementById('sos-btn').addEventListener('click', ()=>toast(i18n[currentLang].toastSOS));
+    document.getElementById('share-btn').addEventListener('click', ()=>toast(i18n[currentLang].toastShare));
+    document.getElementById('cancel-btn').addEventListener('click', ()=>{
+      matchingCard.style.display = 'none';
+      bookingCard.style.opacity = '1';
+      findBtn.disabled = false;
+    });
+  }, 1800);
+});
+
+/* ---------- rider deposit ---------- */
+const DEPOSIT_KEY = 'mg_rider_deposit_paid';
+const depositBadge = document.getElementById('deposit-badge');
+const payDepositBtn = document.getElementById('pay-deposit-btn');
+const goonlineCard = document.getElementById('goonline-card');
+const depositLockNote = document.getElementById('deposit-lock-note');
+let depositPaid = false;
+try{ depositPaid = localStorage.getItem(DEPOSIT_KEY) === 'yes'; }catch(e){}
+
+function renderDepositState(){
+  const t = i18n[currentLang];
+  if(depositPaid){
+    depositBadge.textContent = t.depositPaid;
+    depositBadge.className = 'deposit-badge paid';
+    payDepositBtn.textContent = '✓ ' + t.depositPaid;
+    payDepositBtn.disabled = true;
+    goonlineCard.classList.remove('locked');
+    depositLockNote.style.display = 'none';
+    onlineToggle.disabled = false;
+  } else {
+    depositBadge.textContent = t.depositPending;
+    depositBadge.className = 'deposit-badge pending';
+    payDepositBtn.textContent = t.payDeposit;
+    payDepositBtn.disabled = false;
+    goonlineCard.classList.add('locked');
+    depositLockNote.style.display = 'flex';
+    onlineToggle.disabled = true;
+    onlineToggle.checked = false;
+  }
+}
+
+payDepositBtn.addEventListener('click', ()=>{
+  const t = i18n[currentLang];
+  payDepositBtn.disabled = true;
+  payDepositBtn.textContent = t.depositProcessing;
+  setTimeout(()=>{
+    depositPaid = true;
+    try{ localStorage.setItem(DEPOSIT_KEY, 'yes'); }catch(e){}
+    renderDepositState();
+    toast(t.depositSuccessToast);
+  }, 1200);
+});
+
+/* ---------- rider view ---------- */
+const onlineToggle = document.getElementById('online-toggle');
+const radiusLabel = document.getElementById('radius-label');
+function updateRadiusLabel(){
+  const t = i18n[currentLang];
+  radiusLabel.textContent = onlineToggle.checked ? t.radiusOn : t.radiusOff;
+}
+onlineToggle.addEventListener('change', ()=>{
+  if(!depositPaid){
+    onlineToggle.checked = false;
+    toast(i18n[currentLang].depositRequired);
+    return;
+  }
+  updateRadiusLabel();
+  toast(onlineToggle.checked ? i18n[currentLang].toastOnline : i18n[currentLang].toastOffline);
+});
+renderDepositState();
+
+document.getElementById('copy-referral').addEventListener('click', ()=>{
+  const code = document.getElementById('referral-code').textContent;
+  if(navigator.clipboard){ navigator.clipboard.writeText(code).catch(()=>{}); }
+  toast(i18n[currentLang].toastCopied);
+});
+
+/* bonus progress demo: 3 of 10 rides, generated from actual ride count var */
+const ridesCompleted = 3;
+document.getElementById('bonus-fill').style.width = (ridesCompleted*10) + '%';
+document.getElementById('bonus-count').firstChild.textContent = ridesCompleted + ' ';
+</script>
+</body>
+</html>
